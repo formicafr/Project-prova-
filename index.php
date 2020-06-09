@@ -1,5 +1,3 @@
-php -S localhost:8000;
-
 function apiRequest($url, $post=FALSE, $headers=array()) {
   $ch = curl_init($url);
   curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
@@ -52,5 +50,25 @@ if(!isset($_GET['action'])) {
     echo '<h3>Not logged in</h3>';
     echo '<p><a href="?action=login">Log In</a></p>';
   }
+  die();
+}
+// Start the login process by sending the user
+// to GitHub's authorization page
+if(isset($_GET['action']) && $_GET['action'] == 'login') {
+  unset($_SESSION['access_token']);
+ 
+  // Generate a random hash and store in the session
+  $_SESSION['state'] = bin2hex(random_bytes(16));
+ 
+  $params = array(
+    'response_type' => 'code',
+    'client_id' => $githubClientID,
+    'redirect_uri' => $baseURL,
+    'scope' => 'user public_repo',
+    'state' => $_SESSION['state']
+  );
+ 
+  // Redirect the user to GitHub's authorization page
+  header('Location: '.$authorizeURL.'?'.http_build_query($params));
   die();
 }
