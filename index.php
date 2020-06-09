@@ -72,3 +72,27 @@ if(isset($_GET['action']) && $_GET['action'] == 'login') {
   header('Location: '.$authorizeURL.'?'.http_build_query($params));
   die();
 }
+// When GitHub redirects the user back here,
+// there will be a "code" and "state" parameter in the query string
+if(isset($_GET['code'])) {
+  // Verify the state matches our stored state
+  if(!isset($_GET['state'])
+    || $_SESSION['state'] != $_GET['state']) {
+ 
+    header('Location: ' . $baseURL . '?error=invalid_state');
+    die();
+  }
+ 
+  // Exchange the auth code for an access token
+  $token = apiRequest($tokenURL, array(
+    'grant_type' => 'authorization_code',
+    'client_id' => $githubClientID,
+    'client_secret' => $githubClientSecret,
+    'redirect_uri' => $baseURL,
+    'code' => $_GET['code']
+  ));
+  $_SESSION['access_token'] = $token['access_token'];
+ 
+  header('Location: ' . $baseURL);
+  die();
+}
